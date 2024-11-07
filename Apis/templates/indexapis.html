@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumnos</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <script>
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.content');
+            sections.forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+        const API_URL = "http://127.0.0.1:5000";
+
+        async function getAlumnos() {
+            const response = await fetch(`${API_URL}/alumnos`);
+            const alumnos = await response.json();
+            const alumnosList = document.getElementById("alumnos-list");
+            alumnosList.innerHTML = "";
+            alumnos.forEach(alumno => {
+                const item = document.createElement("li");
+                item.textContent = `ID: ${alumno.ID}, Nombre: ${alumno.name}, Email: ${alumno.email}`;
+                alumnosList.appendChild(item);
+            });
+        }
+
+        async function addAlumno() {
+            const name = document.getElementById("add-name").value;
+            const email = document.getElementById("add-email").value;
+            const password = document.getElementById("add-password").value;
+
+            const response = await fetch(`${API_URL}/alumnos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+
+            if (response.ok) {
+                alert("Se agregó el alumno");
+                getAlumnos();
+                clearForm('add-section');
+            } else {
+                alert("No se pudo agregar");
+            }
+        }
+
+        async function deleteAlumno() {
+            const id = document.getElementById("delete-id").value;
+
+            const response = await fetch(`${API_URL}/alumnos/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert("Registro eliminado");
+                getAlumnos();
+                clearForm('delete-section');
+            } else {
+                alert("No se pudo eliminar");
+            }
+        }
+
+        function clearForm(sectionId) {
+            const inputs = document.querySelectorAll(`#${sectionId} input`);
+            inputs.forEach(input => input.value = '');
+        }
+    </script>
+</head>
+<body>
+    <header class="header">
+        <h1>Registro de alumnos</h1>
+    </header>
+    <nav>
+        <button onclick="showSection('add-section')">Agregar</button>
+        <button onclick="showSection('delete-section')">Eliminar</button>
+        <button onclick="showSection('select-section')">Ver Alumno</button>
+    </nav>
+
+    <div id="add-section" class="content active">
+        <h2>Agregar Alumno</h2>
+        <form onsubmit="event.preventDefault(); addAlumno();">
+            <input type="text" id="add-name" placeholder="Nombre (obligatorio)" required><br>
+            <input type="email" id="add-email" placeholder="Email (obligatorio)" required><br>
+            <input type="password" id="add-password" placeholder="Password (obligatorio)" required><br>
+            <button type="submit">Agregar</button>
+        </form>
+    </div>
+
+    <div id="select-section" class="content">
+        <h2>Lista de Alumnos</h2>
+        <button onclick="getAlumnos()">ver alumno</button>
+        <ul id="alumnos-list"></ul>
+    </div>
+
+    <div id="delete-section" class="content">
+        <h2>Eliminar Alumno</h2>
+        <form onsubmit="event.preventDefault(); deleteAlumno();">
+            <input type="number" id="delete-id" placeholder="inserte id del alumno" required><br>
+            <button type="submit">Eliminar</button>
+        </form>
+    </div>
+</body>
+</html>
